@@ -1,12 +1,13 @@
 # app/main.py
 
 from fastapi import FastAPI
-from app.core.database import engine, Base
-from app.models import tables  # <-- 우리가 만든 모델 임포트 (필수!)
+from app.core.database import engine, Base  # pyright: ignore[reportMissingImports]
+from app.models import tables  # <-- 우리가 만든 모델 임포트 (필수!)  # pyright: ignore[reportMissingImports]
 
 # 라우터 임포트
-from app.routers import user_router
-from app.routers import user_router, request_router
+from app.routers import user_router  # pyright: ignore[reportMissingImports]
+from app.routers import user_router, request_router  # pyright: ignore[reportMissingImports]
+from app.routers import schedule_router  # pyright: ignore[reportMissingImports]
 
 # 1. DB 테이블 자동 생성 (DDL Auto)
 # models에 정의된 클래스들을 보고 DB에 테이블을 찍어냅니다.
@@ -23,6 +24,7 @@ app = FastAPI(
 app.include_router(user_router.router)
 app.include_router(user_router.router)
 app.include_router(request_router.router)
+app.include_router(schedule_router.router)
 
 # 2. 기본 경로 (Spring의 @RestController + @GetMapping)
 @app.get("/")
