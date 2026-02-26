@@ -1,8 +1,8 @@
 # app/services/user_service.py
 
 from sqlalchemy.orm import Session
-from app.models.tables import User
-from app.schemas.user_schema import UserCreate
+from app.models.tables import User # type: ignore
+from app.schemas.user_schema import UserCreate # type: ignore
 
 # 1. 사용자 생성 (INSERT)
 def create_user(db: Session, user: UserCreate):
