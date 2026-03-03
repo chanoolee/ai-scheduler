@@ -20,10 +20,10 @@ SQLALCHEMY_DATABASE_URL = os.environ.get("DATABASE_URL")
 ENCRYPTION_KEY = os.environ.get("ENCRYPTION_KEY")
 
 # [디버깅] 확실하게 찾았는지 터미널에 찍어보기!
-print("--------------")
-print(f"🕵️‍♂️ 파이썬이 뒤진 .env 위치: {env_path}")
-print(f"DB 연결 주소: {SQLALCHEMY_DATABASE_URL}")
-print("--------------")
+# print("--------------")
+# print(f"🕵️‍♂️ 파이썬이 뒤진 .env 위치: {env_path}")
+# print(f"DB 연결 주소: {SQLALCHEMY_DATABASE_URL}")
+# print("--------------")
 
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL
