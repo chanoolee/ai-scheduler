@@ -1,4 +1,4 @@
-from app.core.security import get_password_hash, verify_password, encrypt_data, decrypt_data
+from core.security import get_password_hash, verify_password, encrypt_data, decrypt_data
 
 def test_security():
     # 1. 비밀번호 테스트

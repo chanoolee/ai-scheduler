@@ -1,9 +1,9 @@
 # create_admin.py
 
 # 경로(app.core 등)는 대장 폴더 구조에 맞게 맞춰주세요!
-from app.core.database import SessionLocal # type: ignore # DB 세션
-from app.models.tables import User, Role # type: ignore
-from app.core.security import get_password_hash, encrypt_data # type: ignore
+from core.database import SessionLocal # type: ignore # DB 세션
+from models.tables import User, Role # type: ignore
+from core.security import get_password_hash, encrypt_data # type: ignore
 import uuid
 
 def create_super_admin():

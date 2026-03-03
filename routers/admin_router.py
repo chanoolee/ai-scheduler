@@ -6,9 +6,9 @@ from pydantic import BaseModel
 import uuid
 
 # 경로(app.core / app.models)는 대장 프로젝트 폴더 구조에 맞게 수정해주세요!
-from app.core.database import get_db  # type: ignore
-from app.models.tables import User # type: ignore
-from app.core.security import get_password_hash, encrypt_data # type: ignore
+from core.database import get_db  # type: ignore
+from models.tables import User # type: ignore
+from core.security import get_password_hash, encrypt_data # type: ignore
 
 # URL 앞에 '/admin'을 붙여서 관리자용 API라는 걸 명시!
 router = APIRouter(prefix="/admin", tags=["Admin"])

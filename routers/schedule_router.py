@@ -4,8 +4,8 @@ from typing import List
 from datetime import date
 import calendar
 
-from app.core.database import get_db  # pyright: ignore[reportMissingImports]
-from app.models.tables import WorkSchedule  # pyright: ignore[reportMissingImports]
+from core.database import get_db  # pyright: ignore[reportMissingImports]
+from models.tables import WorkSchedule  # pyright: ignore[reportMissingImports]
 from pydantic import BaseModel
 
 router = APIRouter(

@@ -2,11 +2,11 @@
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.core.database import engine, Base   # type: ignore
-from app.models import tables  # type: ignore # <-- 우리가 만든 모델 임포트 (필수!) 
+from core.database import engine, Base   # type: ignore
+from models import tables  # type: ignore # <-- 우리가 만든 모델 임포트 (필수!) 
 
 # 라우터 임포트
-from app.routers import user_router, request_router, schedule_router, auth_router, admin_router # type: ignore
+from routers import user_router, request_router, schedule_router, auth_router, admin_router # type: ignore
 
 # 1. DB 테이블 자동 생성 (DDL Auto)
 # models에 정의된 클래스들을 보고 DB에 테이블을 찍어냅니다.

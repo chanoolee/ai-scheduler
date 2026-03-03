@@ -1,8 +1,8 @@
-"""전체적인 수정을 위한 스키마 삭제 후 테이블 재구성
+"""init
 
-Revision ID: 1632a68e2955
+Revision ID: 8cf1f212ca91
 Revises: 
-Create Date: 2026-02-25 16:14:10.642130
+Create Date: 2026-03-03 11:18:12.675720
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '1632a68e2955'
+revision: str = '8cf1f212ca91'
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None

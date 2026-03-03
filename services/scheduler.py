@@ -4,7 +4,7 @@ from ortools.sat.python import cp_model
 from sqlalchemy.orm import Session
 from datetime import date
 import calendar
-from app.models.tables import User, WorkRequest, WorkSchedule, RequestType  # pyright: ignore[reportMissingImports]
+from models.tables import User, WorkRequest, WorkSchedule, RequestType  # pyright: ignore[reportMissingImports]
 
 def generate_schedule(db: Session, year: int, month: int):
     # 1. 기초 데이터 준비 (달력 정보)
