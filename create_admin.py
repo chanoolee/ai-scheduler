@@ -25,7 +25,7 @@ def create_super_admin():
         db.commit()
 
         # 2. 대장(admin) 계정이 이미 있는지 확인
-        admin_userid = "chanulee_admin" # 대장이 쓸 아이디
+        admin_userid = "admin" # 대장이 쓸 아이디
         admin_password = "1234" # 대장이 쓸 임시 비밀번호 (나중에 바꿔!)
         
         existing_admin = db.query(User).filter(User.userid == admin_userid).first()

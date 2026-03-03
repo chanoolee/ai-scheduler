@@ -30,13 +30,13 @@ def login(req: LoginRequest, db: Session = Depends(get_db)):
         raise HTTPException(status_code=403, detail="사용이 중지된 계정입니다.")
 
     # 4. 🌟 핵심: 임시 비밀번호 상태인지 체크!
-    if user.must_change_password:
-        return {
-            "status": "REQUIRE_PASSWORD_CHANGE",
-            "message": "임시 비밀번호로 로그인하셨습니다. 비밀번호 변경 페이지로 이동합니다.",
-            "userId": user.userId # 비밀번호 변경 API를 호출할 때 쓰기 위해 ID만 던져줌
-            # 🚨 주의: 이때는 아직 정상 로그인이 아니므로 JWT 인증 토큰을 주면 안 돼!
-        }
+    # if user.must_change_password:
+    #     return {
+    #         "status": "REQUIRE_PASSWORD_CHANGE",
+    #         "message": "임시 비밀번호로 로그인하셨습니다. 비밀번호 변경 페이지로 이동합니다.",
+    #         "userId": user.userId # 비밀번호 변경 API를 호출할 때 쓰기 위해 ID만 던져줌
+    #         # 🚨 주의: 이때는 아직 정상 로그인이 아니므로 JWT 인증 토큰을 주면 안 돼!
+    #     }
 
     # 5. 정상 로그인 성공 (추후 여기에 JWT 토큰 발급 로직 추가)
     return {

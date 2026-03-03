@@ -1,24 +1,22 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 const AdminDashboard = () => {
-  const navigate = useNavigate(); // 👈 네비게이트 객체 생성
+  const navigate = useNavigate();
 
-  // 🌟 핵심: 화면이 켜지자마자 권한부터 검사하는 문지기 로직
+  // 🚧 공사 중: 문지기 로직 임시 비활성화
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    const role = localStorage.getItem("role");
+    // const token = localStorage.getItem("token");
+    // const role = localStorage.getItem("role");
+    // if (!token || role !== "SUPER_ADMIN") {
+    //   alert("🚨 접근 권한이 없습니다.");
+    //   navigate("/"); 
+    // }
+  }, [navigate]);
 
-    // 토큰이 아예 없거나, 권한이 'SUPER_ADMIN'이 아니면?
-    if (!token || role !== "SUPER_ADMIN") {
-      alert("🚨 접근 권한이 없습니다.");
-      navigate("/"); // 로그인 화면으로 강제 추방!
-    }
-  }, [navigate]); // 의존성 배열에 navigate 넣기
-    
-  // 🌟 현재 선택된 메뉴 상태 (기본값: 'account')
   const [activeMenu, setActiveMenu] = useState("account");
 
-  // --- [계정 생성] 메뉴용 상태 ---
+  // --- 상태 관리 ---
   const [username, setUsername] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
@@ -26,12 +24,9 @@ const AdminDashboard = () => {
   const [isError, setIsError] = useState(false);
   const [tempPassword, setTempPassword] = useState("");
 
-  // --- 계정 발급 로직 (아까 만든 것 그대로!) ---
   const handleCreateAccount = async (e) => {
     e.preventDefault();
-    setMessage("");
-    setTempPassword("");
-    setIsError(false);
+    setMessage(""); setTempPassword(""); setIsError(false);
 
     if (!username.trim() || !phone.trim() || !email.trim()) {
       setMessage("모든 칸을 꽉꽉 채워주세요 대장!");
@@ -45,21 +40,13 @@ const AdminDashboard = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, phone, email }),
       });
-
       const data = await response.json();
-
       if (!response.ok) {
         setMessage(data.detail || "계정 생성에 실패했습니다.");
-        setIsError(true);
-        return;
+        setIsError(true); return;
       }
-
-      setMessage(data.message);
-      setTempPassword(data.temp_password);
-      setIsError(false);
-      setUsername("");
-      setPhone("");
-      setEmail("");
+      setMessage(data.message); setTempPassword(data.temp_password);
+      setIsError(false); setUsername(""); setPhone(""); setEmail("");
     } catch (error) {
       setMessage("서버와 통신할 수 없습니다. 백엔드 서버를 확인해주세요!");
       setIsError(true);
@@ -67,138 +54,192 @@ const AdminDashboard = () => {
   };
 
   // ==========================================
-  // 🎨 스타일 정의
+  // 🎨 벤토 그리드 & 전체 화면 스타일링
   // ==========================================
-  const layoutStyle = { display: "flex", minHeight: "100vh", fontFamily: "sans-serif" };
+  // 💡 리액트 기본 여백을 없애는 마법의 꼼수 (전체 화면 꽉 차게!)
+  const globalReset = `
+    body { margin: 0; padding: 0; background-color: #F3F4F6; font-family: 'Pretendard', -apple-system, sans-serif; }
+    * { box-sizing: border-box; }
+  `;
+
+const layoutStyle = {
+    display: "flex",
+    height: "100vh",
+    width: "100%",       // 🚨 100vw 를 100% 로 변경! (핵심)
+    boxSizing: "border-box", // 👈 테두리 삐져나감 방지용 추가
+    overflow: "hidden", 
+    padding: "20px",
+    gap: "20px",
+  };
   
-  // 좌측 사이드바 스타일
+  // 사이드바 (벤토의 첫 번째 큰 칸)
   const sidebarStyle = {
-    width: "250px",
-    background: "#1e293b", // 다크 네이비톤 (관리자 느낌!)
-    color: "#f8fafc",
+    width: "280px",
+    background: "#FFFFFF", 
+    borderRadius: "30px", // 벤토 특유의 둥근 쉐입
     display: "flex",
     flexDirection: "column",
-    padding: "2rem 0",
+    padding: "30px 20px",
+    boxShadow: "0 10px 40px rgba(0,0,0,0.03)",
   };
 
   const logoStyle = {
-    fontSize: "1.5rem",
-    fontWeight: "bold",
-    textAlign: "center",
-    marginBottom: "2.5rem",
-    letterSpacing: "1px",
+    fontSize: "1.4rem", fontWeight: "900", textAlign: "center",
+    marginBottom: "3rem", color: "#111827", letterSpacing: "1px",
+    background: "#F3F4F6", padding: "15px", borderRadius: "20px"
   };
 
-  // 우측 메인 콘텐츠 영역 스타일
-  const contentStyle = {
+  // 우측 영역 (벤토 그리드 판)
+  const contentWrapperStyle = {
     flex: 1,
-    background: "#f1f5f9",
-    padding: "3rem",
-    overflowY: "auto",
+    display: "flex",
+    flexDirection: "column",
+    gap: "20px",
+    overflowY: "auto", // 내용 많아지면 여기만 스크롤
   };
 
-  const cardStyle = {
-    background: "#ffffff",
-    padding: "2.5rem",
-    borderRadius: "15px",
-    boxShadow: "0 10px 25px rgba(0,0,0,0.05)",
-    maxWidth: "500px",
+  const headerStyle = {
+    background: "#FFFFFF", borderRadius: "30px", padding: "20px 40px",
+    display: "flex", alignItems: "center", boxShadow: "0 10px 40px rgba(0,0,0,0.03)",
+    fontSize: "1.2rem", fontWeight: "bold", color: "#1f2937"
+  };
+
+  // ⭐️ 핵심: 벤토 그리드 컨테이너
+  const bentoGridStyle = {
+    display: "grid",
+    gridTemplateColumns: "repeat(12, 1fr)", // 12칸으로 나누고 조합해서 씀
+    gap: "20px",
+  };
+
+  const baseCardStyle = {
+    background: "#FFFFFF", borderRadius: "30px", padding: "40px",
+    boxShadow: "0 10px 40px rgba(0,0,0,0.03)",
   };
 
   const inputStyle = {
-    width: "100%", padding: "0.8rem", border: "1px solid #d1d5db", 
-    borderRadius: "8px", marginBottom: "1rem", outline: "none", boxSizing: "border-box"
+    width: "100%", padding: "1rem 1.2rem", border: "none", background: "#F3F4F6",
+    borderRadius: "16px", marginBottom: "1rem", outline: "none", fontSize: "1rem",
+    transition: "box-shadow 0.2s",
   };
 
   const buttonStyle = {
-    width: "100%", padding: "0.9rem", background: "#10b981", color: "#fff", 
-    border: "none", borderRadius: "8px", fontWeight: "bold", cursor: "pointer", marginTop: "1rem"
+    width: "100%", padding: "1.2rem", background: "#000000", color: "#fff", 
+    border: "none", borderRadius: "16px", fontSize: "1rem", fontWeight: "bold", 
+    cursor: "pointer", marginTop: "1rem", transition: "transform 0.1s"
   };
 
-  // 메뉴 버튼 렌더링 헬퍼 함수
   const MenuItem = ({ id, icon, label }) => {
     const isActive = activeMenu === id;
     return (
       <div
         onClick={() => setActiveMenu(id)}
         style={{
-          padding: "1rem 2rem",
-          cursor: "pointer",
-          background: isActive ? "#334155" : "transparent",
-          borderLeft: isActive ? "4px solid #10b981" : "4px solid transparent",
-          transition: "all 0.2s",
-          display: "flex",
-          alignItems: "center",
-          gap: "10px",
-          color: isActive ? "#fff" : "#cbd5e1",
-          fontWeight: isActive ? "bold" : "normal"
+          padding: "1.2rem 1.5rem", cursor: "pointer", marginBottom: "10px",
+          background: isActive ? "#000000" : "transparent",
+          borderRadius: "16px", transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)", 
+          display: "flex", alignItems: "center", gap: "15px",
+          color: isActive ? "#fff" : "#6b7280", fontWeight: isActive ? "bold" : "600"
         }}
       >
-        <span>{icon}</span>
+        <span style={{ fontSize: "1.2rem" }}>{icon}</span>
         <span>{label}</span>
       </div>
     );
   };
 
   // ==========================================
-  // 📺 메뉴별 화면 렌더링 함수
+  // 📺 벤토 화면 렌더링
   // ==========================================
   const renderAccountManager = () => (
-    <div style={cardStyle}>
-      <h2 style={{ marginBottom: "0.5rem", color: "#0f172a" }}>고객 계정 발급</h2>
-      <p style={{ marginBottom: "2rem", color: "#64748b", fontSize: "0.9rem" }}>
-        크몽 결제 고객(병원)의 새 계정을 생성합니다.
-      </p>
-      <form onSubmit={handleCreateAccount}>
-        <input style={inputStyle} type="text" placeholder="병원명 (아이디)" value={username} onChange={(e) => setUsername(e.target.value)} />
-        <input style={inputStyle} type="text" placeholder="연락처" value={phone} onChange={(e) => setPhone(e.target.value)} />
-        <input style={inputStyle} type="email" placeholder="이메일" value={email} onChange={(e) => setEmail(e.target.value)} />
-        <button type="submit" style={buttonStyle}>계정 생성하기</button>
-      </form>
+    <div style={bentoGridStyle}>
+      {/* 큰 상자: 입력 폼 (8칸 차지) */}
+      <div style={{ ...baseCardStyle, gridColumn: "span 8" }}>
+        <h2 style={{ marginBottom: "0.5rem", color: "#111827", fontSize: "1.8rem" }}>고객 계정 발급</h2>
+        <p style={{ marginBottom: "2.5rem", color: "#6b7280" }}>
+          새로운 병원 고객의 전용 계정을 생성하고 임시 비밀번호를 부여합니다.
+        </p>
+        <form onSubmit={handleCreateAccount}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "15px" }}>
+            <input style={{...inputStyle, gridColumn: "span 2"}} type="text" placeholder="병원명 (로그인 아이디로 사용됨)" value={username} onChange={(e) => setUsername(e.target.value)} />
+            <input style={inputStyle} type="text" placeholder="담당자 연락처" value={phone} onChange={(e) => setPhone(e.target.value)} />
+            <input style={inputStyle} type="email" placeholder="담당자 이메일" value={email} onChange={(e) => setEmail(e.target.value)} />
+          </div>
+          <button type="submit" style={buttonStyle}
+            onMouseDown={(e) => e.target.style.transform = "scale(0.98)"}
+            onMouseUp={(e) => e.target.style.transform = "scale(1)"}
+          >
+            + 새 계정 발급하기
+          </button>
+        </form>
+      </div>
 
-      {message && (
-        <div style={{ marginTop: "1.5rem", padding: "1rem", borderRadius: "8px", background: isError ? "#fee2e2" : "#dcfce7", color: isError ? "#991b1b" : "#166534" }}>
-          <p style={{ margin: 0, fontWeight: "bold" }}>{message}</p>
-          {tempPassword && (
-            <div style={{ marginTop: "1rem", padding: "0.8rem", background: "#fff", borderRadius: "5px", border: "1px dashed #166534" }}>
-              <span style={{ fontSize: "0.9rem" }}>임시 비밀번호: </span>
-              <strong style={{ fontSize: "1.2rem", letterSpacing: "2px" }}>{tempPassword}</strong>
+      {/* 작은 상자: 결과 창 (4칸 차지) */}
+      <div style={{ ...baseCardStyle, gridColumn: "span 4", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", textAlign: "center", background: isError ? "#FEF2F2" : (tempPassword ? "#F0FDF4" : "#FFFFFF"), border: tempPassword ? "2px solid #22C55E" : "none" }}>
+        {message ? (
+          <>
+            <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>
+              {isError ? "🚨" : "🎉"}
             </div>
-          )}
-        </div>
-      )}
-    </div>
-  );
-
-  const renderPlaceholder = (title, desc) => (
-    <div style={cardStyle}>
-      <h2 style={{ marginBottom: "1rem", color: "#0f172a" }}>{title}</h2>
-      <p style={{ color: "#64748b" }}>{desc}</p>
-      <div style={{ marginTop: "2rem", padding: "2rem", background: "#f8fafc", borderRadius: "8px", textAlign: "center", color: "#94a3b8", border: "2px dashed #e2e8f0" }}>
-        🚧 대장! 이 기능은 아직 공사 중입니다! 🚧
+            <h3 style={{ color: isError ? "#991B1B" : "#166534", marginBottom: "1rem" }}>{message}</h3>
+            {tempPassword && (
+              <div style={{ padding: "1.5rem", background: "#FFFFFF", borderRadius: "16px", width: "100%", border: "2px dashed #22C55E" }}>
+                <p style={{ margin: "0 0 0.5rem 0", color: "#166534", fontSize: "0.9rem" }}>초기 임시 비밀번호</p>
+                <strong style={{ fontSize: "1.8rem", letterSpacing: "2px", color: "#000" }}>{tempPassword}</strong>
+              </div>
+            )}
+          </>
+        ) : (
+          <div style={{ color: "#9CA3AF" }}>
+            <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>💬</div>
+            <p>계정을 발급하면<br/>여기에 결과가 표시됩니다.</p>
+          </div>
+        )}
       </div>
     </div>
   );
 
   return (
-    <div style={layoutStyle}>
-      {/* 👈 좌측 사이드바 영역 */}
-      <div style={sidebarStyle}>
-        <div style={logoStyle}>👑 SUPER ADMIN</div>
-        <MenuItem id="account" icon="👤" label="계정 발급 관리" />
-        <MenuItem id="payment" icon="💳" label="결제 내역 관리" />
-        <MenuItem id="stats" icon="📊" label="사용량 통계" />
-        <MenuItem id="settings" icon="⚙️" label="시스템 설정" />
-      </div>
+    <>
+      {/* 리액트 기본 여백 파괴 공작! */}
+      <style>{globalReset}</style>
+      
+      <div style={layoutStyle}>
+        {/* 👈 좌측 벤토 사이드바 */}
+        <div style={sidebarStyle}>
+          <div style={logoStyle}>⚡ AI SCHEDULER</div>
+          <MenuItem id="account" icon="👤" label="계정 발급 관리" />
+          <MenuItem id="payment" icon="💳" label="결제 내역 관리" />
+          <MenuItem id="stats" icon="📊" label="사용량 통계" />
+          <MenuItem id="settings" icon="⚙️" label="시스템 설정" />
+        </div>
 
-      {/* 👉 우측 메인 콘텐츠 영역 */}
-      <div style={contentStyle}>
-        {activeMenu === "account" && renderAccountManager()}
-        {activeMenu === "payment" && renderPlaceholder("결제 내역 관리", "크몽 등에서 결제된 내역을 확인하고 연동하는 메뉴입니다.")}
-        {activeMenu === "stats" && renderPlaceholder("사용량 통계", "각 병원별 스케줄 생성 횟수 및 시스템 부하를 확인합니다.")}
-        {activeMenu === "settings" && renderPlaceholder("시스템 설정", "전체 시스템 점검 및 공지사항을 관리합니다.")}
+        {/* 👉 우측 메인 콘텐츠 (헤더 + 벤토 그리드) */}
+        <div style={contentWrapperStyle}>
+          {/* 🚨 수정 1: 헤더 글자를 span으로 감싸고 삼항 연산자로 깔끔하게 분기! */}
+          <div style={headerStyle}>
+            <span>
+              {activeMenu === "account" ? "👤 계정 발급 관리 (Admin Center)" :
+               activeMenu === "payment" ? "💳 결제 내역 관리" :
+               activeMenu === "stats"   ? "📊 사용량 통계" :
+                                          "⚙️ 시스템 설정"}
+            </span>
+          </div>
+          
+          {/* 🚨 수정 2: && 대신 삼항 연산자(? :)를 써서 컴포넌트 교체 시 충돌 방지! */}
+          {activeMenu === "account" ? (
+            renderAccountManager()
+          ) : (
+            <div style={{...baseCardStyle, display: "flex", justifyContent: "center", alignItems: "center", minHeight: "400px"}}>
+              <div style={{ textAlign: "center", color: "#9CA3AF" }}>
+                <span style={{ fontSize: "4rem", display: "block", marginBottom: "1rem" }}>🚧</span>
+                <h2>대장! 이 기능은 아직 공사 중입니다!</h2>
+                <p>도시락통(Bento) 레이아웃에 맞게 추가 개발이 필요합니다.</p>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 
