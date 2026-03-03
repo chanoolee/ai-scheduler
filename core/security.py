@@ -6,7 +6,7 @@ import bcrypt # 🌟 passlib 대신 순수 bcrypt 직결!
 from cryptography.fernet import Fernet
 from jose import JWTError, jwt
 
-from app.core.config import settings # type: ignore
+from core.config import settings # type: ignore
 
 # AES 암호화 설정
 # settings.ENCRYPTION_KEY는 Fernet.generate_key()로 생성된 유효한 키여야 합니다.

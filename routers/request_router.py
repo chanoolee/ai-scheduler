@@ -4,9 +4,9 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
 
-from app.core.database import get_db # type: ignore
-from app.schemas.request_schema import RequestCreate, RequestResponse # type: ignore
-from app.services import request_service # type: ignore
+from core.database import get_db # type: ignore
+from schemas.request_schema import RequestCreate, RequestResponse # type: ignore
+from services import request_service # type: ignore
 
 router = APIRouter(
     prefix="/requests",

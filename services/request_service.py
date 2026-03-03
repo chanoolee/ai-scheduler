@@ -1,8 +1,8 @@
 # app/services/request_service.py
 
 from sqlalchemy.orm import Session
-from app.models.tables import WorkRequest # type: ignore
-from app.schemas.request_schema import RequestCreate # type: ignore
+from models.tables import WorkRequest # type: ignore
+from schemas.request_schema import RequestCreate # type: ignore
 
 # 1. 신청서 생성 (INSERT)
 def create_request(db: Session, request: RequestCreate):

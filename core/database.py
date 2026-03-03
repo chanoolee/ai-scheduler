@@ -5,14 +5,25 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 import os
 
-# PostgreSQL 연결 정보 설정
-# 아래에서 [아이디], [비밀번호], [DB이름]을 실제 환경에 맞게 입력하세요.
-SQLALCHEMY_DATABASE_URL = "postgresql://admin:1234@localhost:5432/scheduler_db"
+from dotenv import load_dotenv
 
-# [디버깅] DB 연결 주소 출력 (필요 시 주석 해제해서 사용)
-# print("--------------")
-# print(f\"DB 연결 주소: {SQLALCHEMY_DATABASE_URL}\")
-# print("--------------")
+# 🚨 1. 현재 파일(database.py) 위치를 기준으로 .env 파일의 절대 경로 찾기!
+# (database.py가 core 폴더 안에 있고, .env가 그 바깥 최상단에 있다고 가정)
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+env_path = os.path.join(BASE_DIR, ".env")
+
+# 🚨 2. 찾아낸 경로를 억지로 먹여주기!
+load_dotenv(dotenv_path=env_path)
+
+# PostgreSQL 연결 정보 설정
+SQLALCHEMY_DATABASE_URL = os.environ.get("DATABASE_URL")
+ENCRYPTION_KEY = os.environ.get("ENCRYPTION_KEY")
+
+# [디버깅] 확실하게 찾았는지 터미널에 찍어보기!
+print("--------------")
+print(f"🕵️‍♂️ 파이썬이 뒤진 .env 위치: {env_path}")
+print(f"DB 연결 주소: {SQLALCHEMY_DATABASE_URL}")
+print("--------------")
 
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL

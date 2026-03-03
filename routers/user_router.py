@@ -4,9 +4,9 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
 
-from app.core.database import get_db # type: ignore
-from app.schemas.user_schema import UserCreate, UserResponse # type: ignore
-from app.services import user_service # type: ignore
+from core.database import get_db # type: ignore
+from schemas.user_schema import UserCreate, UserResponse # type: ignore
+from services import user_service # type: ignore
 
 # URL Prefix 설정 (/users)
 router = APIRouter(

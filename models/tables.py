@@ -27,7 +27,7 @@ from sqlalchemy.orm import relationship, declarative_mixin, declared_attr # 🌟
 from sqlalchemy.sql import func
 from datetime import datetime, timezone # 🌟 timezone 추가됨!
 
-from app.core.database import Base # type: ignore
+from core.database import Base # type: ignore
 
 
 @declarative_mixin # 🌟 Mixin 클래스임을 명시
