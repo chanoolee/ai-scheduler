@@ -18,8 +18,8 @@ const AdminDashboard = () => {
   const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(true);
 
   // --- 상태 관리 ---
+  const [userid, setUserid] = useState("");
   const [username, setUsername] = useState("");
-  const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [serviceMonths, setServiceMonths] = useState(1);
@@ -32,7 +32,7 @@ const AdminDashboard = () => {
     setMessage(""); setTempPassword(""); setIsError(false);
 
     // 1. 빈칸 검사 (이름, 개월 수 추가됨)
-    if (!username.trim() || !name.trim() || !phone.trim() || !email.trim() || !serviceMonths) {
+    if (!userid.trim() || !username.trim() || !phone.trim() || !email.trim() || !serviceMonths) {
       setMessage("모든 칸을 꽉꽉 채워주세요 대장!");
       setIsError(true);
       return;
@@ -49,8 +49,8 @@ const AdminDashboard = () => {
 
     // 4. 백엔드로 보낼 완벽한 데이터 꾸러미(Payload) 완성! 📦
     const payload = {
+      userid: userid,
       username: username,
-      name: name,
       phone: phone, // 백엔드에서 이 값을 임시 비번으로 써야 함!
       email: email,
       role_code: "CUSTOMER",      // 강제 고정!
@@ -76,7 +76,7 @@ const AdminDashboard = () => {
       setIsError(false); 
       
       // 전송 성공하면 폼 초기화!
-      setUsername(""); setName(""); setPhone(""); setEmail(""); setServiceMonths(1);
+      setUserid(""); setUsername(""); setPhone(""); setEmail(""); setServiceMonths(1);
     } catch (error) {
       setMessage("서버와 통신할 수 없습니다. 백엔드 서버를 확인해주세요!");
       setIsError(true);
@@ -220,23 +220,22 @@ const AdminDashboard = () => {
         <form onSubmit={handleCreateAccount}>
           {/* 🌟 폼 그리드 구성 (이름, 개월 수 칸 추가) */}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "15px" }}>
-            <input style={{...inputStyle, gridColumn: "span 2"}} type="text" placeholder="병원 로그인 아이디" value={username} onChange={(e) => setUsername(e.target.value)} />
-            
-            <input style={inputStyle} type="text" placeholder="담당자 이름 (예: 홍길동)" value={name} onChange={(e) => setName(e.target.value)} />
-            <input style={inputStyle} type="email" placeholder="담당자 이메일" value={email} onChange={(e) => setEmail(e.target.value)} />
-            
-            <input style={{...inputStyle, border: "2px solid #E5E7EB"}} type="text" placeholder="연락처 (- 없이 숫자만, 임시 비밀번호로 사용)" value={phone} onChange={(e) => setPhone(e.target.value)} />
+            <input style={{...inputStyle, gridColumn: "span 2"}} type="text" placeholder="로그인 아이디" value={userid} onChange={(e) => setUserid(e.target.value)} />          
+            <input style={inputStyle} type="text" placeholder="이름" value={username} onChange={(e) => setUsername(e.target.value)} />
             
             {/* 🌟 서비스 개월 수 입력칸 (디자인 특화) */}
             <div style={{ display: "flex", alignItems: "center", background: "#F3F4F6", borderRadius: "16px", padding: "0 1rem", marginBottom: "1rem" }}>
               <span style={{color: "#6b7280", marginRight: "10px", whiteSpace: "nowrap", fontWeight: "bold"}}>이용 기간:</span>
               <input 
-                style={{ width: "100%", padding: "1rem 0", border: "none", background: "transparent", outline: "none", fontSize: "1rem", fontWeight: "bold", color: "#111827" }} 
-                type="number" min="1" max="120" placeholder="예: 12" 
-                value={serviceMonths} onChange={(e) => setServiceMonths(e.target.value)} 
+                style={{ width: "30%", padding: "1rem 0", border: "none", background: "transparent", outline: "none", fontSize: "1rem", fontWeight: "bold", color: "#111827" }} 
+                type="number" min="1" max="120" value={serviceMonths} onChange={(e) => setServiceMonths(e.target.value)} 
               />
               <span style={{color: "#6b7280", marginLeft: "10px", fontWeight: "bold"}}>개월</span>
             </div>
+
+            <input style={{...inputStyle, gridColumn: "span 2"}} type="email" placeholder="이메일" value={email} onChange={(e) => setEmail(e.target.value)} />
+            <input style={{...inputStyle, gridColumn: "span 2", border: "2px solid #E5E7EB"}} type="text" placeholder="연락처 (- 없이 숫자만, 임시 비밀번호로 사용)" value={phone} onChange={(e) => setPhone(e.target.value)} />
+
           </div>
 
           <button type="submit" style={buttonStyle}
