@@ -1,12 +1,12 @@
 # app/services/request_service.py
 
 from sqlalchemy.orm import Session
-from models.tables import WorkRequest # type: ignore
+from models.tables import ScheduleCondition # type: ignore
 from schemas.request_schema import RequestCreate # type: ignore
 
 # 1. 신청서 생성 (INSERT)
 def create_request(db: Session, request: RequestCreate):
-    db_request = WorkRequest(
+    db_request = ScheduleCondition(
         user_id=request.user_id,
         date=request.date,
         type=request.type,
@@ -19,4 +19,4 @@ def create_request(db: Session, request: RequestCreate):
 
 # 2. 모든 신청 내역 조회 (SELECT)
 def get_requests(db: Session, skip: int = 0, limit: int = 100):
-    return db.query(WorkRequest).offset(skip).limit(limit).all()
+    return db.query(ScheduleCondition).offset(skip).limit(limit).all()

@@ -4,7 +4,7 @@ from ortools.sat.python import cp_model
 from sqlalchemy.orm import Session
 from datetime import date
 import calendar
-from models.tables import User, WorkRequest, WorkSchedule, RequestType  # pyright: ignore[reportMissingImports]
+from models.tables import User, ScheduleCondition, WorkSchedule, RequestType  # pyright: ignore[reportMissingImports]
 
 def generate_schedule(db: Session, year: int, month: int):
     # 1. 기초 데이터 준비 (달력 정보)
@@ -17,9 +17,9 @@ def generate_schedule(db: Session, year: int, month: int):
     # 해당 월의 신청 내역만 가져오기
     start_date = date(year, month, 1)
     end_date = date(year, month, last_day)
-    requests = db.query(WorkRequest).filter(
-        WorkRequest.date >= start_date,
-        WorkRequest.date <= end_date
+    requests = db.query(ScheduleCondition).filter(
+        ScheduleCondition.date >= start_date,
+        ScheduleCondition.date <= end_date
     ).all()
 
     # 3. 모델 생성 (OR-Tools)

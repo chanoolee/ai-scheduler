@@ -18,7 +18,7 @@ def create_customer_account(user_in: UserCreateByAdmin, db: Session = Depends(ge
     
     # 1. 중복 체크 (로그인 아이디 & 병원 이름 둘 다 체크!)
     if db.query(User).filter(User.userid == user_in.userid).first():
-        raise HTTPException(status_code=400, detail="이미 사용 중인 로그인 아이디입니다 대장!")
+        raise HTTPException(status_code=400, detail="이미 사용 중인 로그인 아이디입니다!")
         
     # 2. 연락처(phone)를 임시 비밀번호로 세팅!
     temp_password = user_in.phone 
