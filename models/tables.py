@@ -10,6 +10,7 @@
 5) Employee: 병원 직원
 6) WorkSchedule: 근무 스케줄
 7) LoginHistory: 로그인 이력
+8) ScheduleCondition: 시간표 고정 조건
 """
 
 from sqlalchemy import (
@@ -100,7 +101,7 @@ class User(Base, AuditMixin):
     shift_types = relationship("ShiftType", back_populates="owner")
     employees = relationship("Employee", back_populates="manager")
     login_histories = relationship("LoginHistory", back_populates="user")
-    work_requests = relationship("WorkRequest", back_populates="user")
+    schedule_conditions = relationship("ScheduleCondition", back_populates="user")
 
     @property
     def is_service_expired(self) -> bool:
@@ -222,11 +223,12 @@ class RequestType:
     WORK = "work"
 
 
-class WorkRequest(Base, AuditMixin):
+class ScheduleCondition(Base, AuditMixin):
     """
-    근무/휴무 신청 정보
+    근무표 자동화 생성 시 AI가 항상 참고할 고정 조건 설정
+    (예: 인당 만근시간 160시간, 병원 운영시간 09:00~18:00 등)
     """
-    __tablename__ = "work_requests"
+    __tablename__ = "schedule_conditions"
 
     id = Column(Integer, primary_key=True, index=True)
     userid = Column(
@@ -234,11 +236,12 @@ class WorkRequest(Base, AuditMixin):
         ForeignKey("users.userid", ondelete="CASCADE"),
         nullable=False,
     )
-    date = Column(Date, nullable=False)
-    type = Column(String(50), nullable=False)
-    status = Column(
-        String(50), nullable=False, server_default="pending"
-    )
+    
+    # 🌟 고정 조건 (JSON 문자열 형태로 저장하는 것을 추천!)
+    fixed_conditions = Column(String, nullable=False) 
+    
+    # 🌟 논리 삭제용 컬럼 (True면 사용 중, False면 삭제됨)
+    use_at = Column(Boolean, nullable=False, server_default="true")
 
-    # 관계
-    user = relationship("User", back_populates="work_requests")
+    # 관계 (User 모델에도 work_requests 대신 schedule_conditions = relationship(...) 으로 이름 맞춰주면 좋아!)
+    user = relationship("User", back_populates="schedule_conditions")

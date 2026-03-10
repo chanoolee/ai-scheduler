@@ -1,13 +1,15 @@
-:root {
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
-  color: #111827;
-  background-color: #e5e7eb; /* 밝은 그레이 톤 배경 */
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+html, body, #root {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none !important; /* 🚨 1280px 제한 영구 철거! */
+  background-color: #F3F4F6;
+  font-family: 'Pretendard', -apple-system, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
 }
 
 *,

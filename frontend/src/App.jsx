@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Login from './pages/Login';
-import Schedule from './pages/Schedule';
+import UserDashboard from './pages/UserDashboard';
 import AdminDashboard from './pages/AdminDashBoard';
 
 const shellStyle = {
@@ -12,8 +12,7 @@ const shellStyle = {
 };
 
 const cardShellStyle = {
-  width: '100%',
-  maxWidth: 1100,
+  width: '100%'
 };
 
 function App() {
@@ -26,7 +25,7 @@ function App() {
             <Route path="/" element={<Login />} />
 
             {/* 스케줄 페이지 */}
-            <Route path="/schedule" element={<Schedule />} />
+            <Route path="/dashboard" element={<UserDashboard />} />
 
             {/* 관리자 페이지 */}
             <Route path="/admin" element={<AdminDashboard />} />
