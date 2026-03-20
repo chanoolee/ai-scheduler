@@ -100,6 +100,13 @@ const UserDashboard = () => {
   const [existingShifts, setExistingShifts] = useState([]);
   const [newShifts, setNewShifts] = useState([{ id: Date.now(), name: "", start_time: "09:00", end_time: "18:00", color: "#DBEAFE" }]);
   const [editModeShifts, setEditModeShifts] = useState({});
+  // 휴가(연차) 기본 설정 State
+  const [leaveSettings, setLeaveSettings] = useState({
+    annual: true,   // 기본적으로 연차는 무조건 쓴다고 가정!
+    half: false,    // 반차
+    quarter: false  // 반반차
+  });
+
   const toggleShiftEdit = (id) => setEditModeShifts(prev => ({ ...prev, [id]: !prev[id] }));
 
   const fetchShiftTypes = async () => {
@@ -114,7 +121,6 @@ const UserDashboard = () => {
     }
   };
 
-  // [신규 추가 로직]
   const handleAddNewShiftRow = () => setNewShifts([...newShifts, { id: Date.now(), name: "", start_time: "09:00", end_time: "18:00", color: "#DBEAFE" }]);
   const handleRemoveNewShiftRow = (id) => setNewShifts(newShifts.filter(s => s.id !== id));
   const handleNewShiftChange = (id, field, value) => setNewShifts(newShifts.map(s => s.id === id ? { ...s, [field]: value } : s));
@@ -167,6 +173,22 @@ const UserDashboard = () => {
     fetchShiftTypes(); // 🌟 DB 원본으로 롤백!
   };
 
+  // 시스템에서 고정으로 제공하는 휴가 타입들
+  const SYSTEM_LEAVES = [
+    { id: "leave_annual", name: "연차", color: "#FCA5A5", isSystem: true },
+    { id: "leave_half", name: "반차", color: "#FCD34D", isSystem: true },
+    { id: "leave_quarter", name: "반반차", color: "#FEF08A", isSystem: true }
+  ];
+
+  // 사용자가 등록한 근무 + 체크된 시스템 휴가를 하나로 합쳐주는 함수
+  const getAvailableShifts = () => {
+    const activeLeaves = [];
+    if (leaveSettings.annual) activeLeaves.push(SYSTEM_LEAVES[0]);
+    if (leaveSettings.half) activeLeaves.push(SYSTEM_LEAVES[1]);
+    if (leaveSettings.quarter) activeLeaves.push(SYSTEM_LEAVES[2]);
+    return [...existingShifts, ...activeLeaves];
+  };
+
   // ==========================================
   // 🤖 3. 고정 조건 (기존 유지)
   // ==========================================
@@ -209,7 +231,7 @@ const UserDashboard = () => {
   const [scheduleMonth, setScheduleMonth] = useState(3);
   const [schedulePrompt, setSchedulePrompt] = useState("");
   
-  // 🌟 변경: { "직원ID_날짜": 근무타입객체 } 형태로 저장! (예: "1_15": Day객체)
+  // "직원ID_날짜": 근무타입객체 형태로 저장 (예: "1_15": Day객체)
   const [manualShifts, setManualShifts] = useState({});
 
   // 달력 셀 Select 박스 변경 시
@@ -221,6 +243,9 @@ const UserDashboard = () => {
       if (!shiftId) {
         delete newShifts[key]; // '-' 선택 시 빈칸으로 초기화
       } else {
+        // 합쳐진 전체 목록(일반 근무 + 켜져있는 휴가)에서 찾기
+        const allShifts = getAvailableShifts();
+
         // 선택한 shiftId와 일치하는 근무 타입 객체 찾아서 배정
         const selectedShift = existingShifts.find(s => s.id.toString() === shiftId);
         if (selectedShift) newShifts[key] = selectedShift;
@@ -278,9 +303,33 @@ const UserDashboard = () => {
   // ==========================================
   // 🎨 공통 렌더링 세팅
   // ==========================================
-  const layoutStyle = { display: "flex", height: "100vh", width: "100%", padding: "20px", gap: "20px" };
-  const sidebarStyle = { width: "280px", height: "100%", background: "#FFFFFF", borderRadius: "30px", display: "flex", flexDirection: "column", padding: "30px 20px", boxShadow: "0 10px 40px rgba(0,0,0,0.03)", flexShrink: 0 };
-  const contentWrapperStyle = { flex: 1, height: "100%", display: "flex", flexDirection: "column", gap: "20px" };
+  const layoutStyle = { 
+    display: "flex", 
+    minHeight: "100vh", // 🌟 핵심: 화면보다 내용이 길면 늘어나도록 허용!
+    width: "100%", 
+    padding: "20px", 
+    gap: "20px",
+    alignItems: "flex-start" // 🌟 사이드바가 억지로 늘어나지 않게 상단에 정렬
+  };
+  const sidebarStyle = { 
+    width: "280px", 
+    height: "calc(100vh - 40px)", // 🌟 위아래 여백(20px씩) 뺀 모니터 꽉 찬 높이
+    position: "sticky",           // 🌟 핵심: 스크롤해도 화면에 고정!
+    top: "20px",                  // 🌟 고정될 때 위에서 20px 띄움
+    background: "#FFFFFF", 
+    borderRadius: "30px", 
+    display: "flex", 
+    flexDirection: "column", 
+    padding: "30px 20px", 
+    boxShadow: "0 10px 40px rgba(0,0,0,0.03)", 
+    flexShrink: 0 
+  };
+  const contentWrapperStyle = { 
+    flex: 1, 
+    display: "flex", 
+    flexDirection: "column", 
+    gap: "20px" 
+  };
   const bentoGridStyle = { display: "grid", gridTemplateColumns: "repeat(12, 1fr)", gap: "20px", flex: 1, minHeight: 0 };
   const baseCardStyle = { background: "#FFFFFF", borderRadius: "30px", padding: "30px", boxShadow: "0 10px 40px rgba(0,0,0,0.03)", display: "flex", flexDirection: "column", overflowY: "auto" };
 
@@ -354,31 +403,55 @@ const UserDashboard = () => {
         </div>
       </div>
 
-      {/* 🌟 신규 추가 창 (4칸) - 기존과 동일 */}
+      {/* 🌟 신규 추가 창 (4칸) */}
       <div style={{ ...baseCardStyle, gridColumn: "span 4", background: "#F8FAFC" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
           <h2 style={{ fontSize: "1.3rem", margin: 0 }}>✨ 신규 직원 추가</h2>
           <button onClick={handleAddNewEmpRow} style={{ padding: "0.4rem 0.8rem", background: "#E5E7EB", border: "none", borderRadius: "6px", cursor: "pointer", fontWeight: "bold" }}>+ 칸 추가</button>
         </div>
-        <div style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", gap: "10px" }}>
-          {newEmps.map((emp) => (
-            <div key={emp.id} style={{ display: "flex", flexDirection: "column", gap: "5px", background: "#fff", padding: "15px", borderRadius: "12px", border: "1px solid #E5E7EB", position: "relative" }}>
-              <input placeholder="직원 이름" value={emp.name} onChange={e => handleNewEmpChange(emp.id, "name", e.target.value)} style={basicInputStyle} />
-              <input placeholder="직급 (옵션)" value={emp.position} onChange={e => handleNewEmpChange(emp.id, "position", e.target.value)} style={basicInputStyle} />
-              {newEmps.length > 1 && <button onClick={() => handleRemoveNewEmpRow(emp.id)} style={{ position: "absolute", top: "5px", right: "5px", background: "none", border: "none", color: "#EF4444", cursor: "pointer" }}>✕</button>}
-            </div>
-          ))}
+        <div style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+            {newEmps.map((emp) => (
+              <div key={emp.id} style={{ display: "flex", flexDirection: "column", gap: "5px", background: "#fff", padding: "15px", borderRadius: "12px", border: "1px solid #E5E7EB", position: "relative" }}>
+                <input placeholder="직원 이름" value={emp.name} onChange={e => handleNewEmpChange(emp.id, "name", e.target.value)} style={basicInputStyle} />
+                <input placeholder="직급 (옵션)" value={emp.position} onChange={e => handleNewEmpChange(emp.id, "position", e.target.value)} style={basicInputStyle} />
+                {newEmps.length > 1 && <button onClick={() => handleRemoveNewEmpRow(emp.id)} style={{ position: "absolute", top: "5px", right: "5px", background: "none", border: "none", color: "#EF4444", cursor: "pointer" }}>✕</button>}
+              </div>
+            ))}
+          </div>
+          <button onClick={handleSaveNewEmployees} style={{ padding: "1.2rem", background: "#000", color: "#fff", borderRadius: "12px", border: "none", fontWeight: "bold", cursor: "pointer", marginTop: "15px", flexShrink: 0 }}>
+            💾 추가 반영하기
+          </button>
         </div>
-        <button onClick={handleSaveNewEmployees} style={{ padding: "1.2rem", background: "#000", color: "#fff", borderRadius: "12px", border: "none", fontWeight: "bold", cursor: "pointer", marginTop: "1rem" }}>💾 추가 반영하기</button>
       </div>
     </div>
   );
 
   // ==========================================
-  // 📺 화면 2. 근무 타입 설정 렌더링 (폭 조절 & 버튼 스위칭)
+  // 📺 화면 2. 근무 타입 설정 렌더링
   // ==========================================
   const renderShiftSettings = () => (
     <div style={bentoGridStyle}>
+
+      {/* 휴가 기본 설정 패널 */}
+      <div style={{ ...baseCardStyle, gridColumn: "span 12", padding: "20px 30px", display: "flex", flexDirection: "row", justifyContent: "space-between", alignItems: "center", background: "#FFFBEB", border: "1px solid #FDE68A" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "15px" }}>
+          <h2 style={{ fontSize: "1.2rem", margin: 0, color: "#D97706" }}>🌴 공통 휴가(연차) 설정</h2>
+          <span style={{ fontSize: "0.85rem", color: "#92400E" }}>병원에서 사용하는 휴가 항목을 켜두면, 시간표 짤 때 자동으로 목록에 나타납니다.</span>
+        </div>
+        <div style={{ display: "flex", gap: "25px", fontWeight: "bold", fontSize: "1rem", color: "#111827" }}>
+          <label style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }}>
+            <input type="checkbox" checked={leaveSettings.annual} onChange={e => setLeaveSettings({...leaveSettings, annual: e.target.checked})} style={{ width: "20px", height: "20px", accentColor: "#D97706" }} /> 연차
+          </label>
+          <label style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }}>
+            <input type="checkbox" checked={leaveSettings.half} onChange={e => setLeaveSettings({...leaveSettings, half: e.target.checked})} style={{ width: "20px", height: "20px", accentColor: "#D97706" }} /> 반차
+          </label>
+          <label style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }}>
+            <input type="checkbox" checked={leaveSettings.quarter} onChange={e => setLeaveSettings({...leaveSettings, quarter: e.target.checked})} style={{ width: "20px", height: "20px", accentColor: "#D97706" }} /> 반반차
+          </label>
+        </div>
+      </div>
+
       {/* 🌟 기존 목록 창 (대장의 요청대로 span 7 -> 8칸으로 넓힘!) */}
       <div style={{ ...baseCardStyle, gridColumn: "span 8" }}>
         <h2 style={{ fontSize: "1.3rem", marginBottom: "1rem" }}>📋 등록된 근무 타입</h2>
@@ -438,29 +511,33 @@ const UserDashboard = () => {
         </div>
       </div>
 
-      {/* 🌟 신규 추가 창 (대장의 요청대로 span 5 -> 4칸으로 줄임!) */}
-      <div style={{ ...baseCardStyle, gridColumn: "span 4", background: "#F8FAFC" }}>
+      {/* 🌟 신규 추가 창 */}
+      <div style={{ ...baseCardStyle, gridColumn: "span 4", background: "#F8FAFC"}}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
           <h2 style={{ fontSize: "1.3rem", margin: 0 }}>✨ 신규 추가</h2>
           <button onClick={handleAddNewShiftRow} style={{ padding: "0.4rem 0.8rem", background: "#E5E7EB", border: "none", borderRadius: "6px", cursor: "pointer", fontWeight: "bold", fontSize: "0.85rem" }}>+ 칸 추가</button>
         </div>
-        <div style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", gap: "10px" }}>
-          {newShifts.map((s) => (
-            <div key={s.id} style={{ display: "flex", flexDirection: "column", gap: "8px", background: "#fff", padding: "12px", borderRadius: "10px", border: "1px solid #E5E7EB", position: "relative" }}>
-              <input placeholder="예: Day" value={s.name} onChange={e => handleNewShiftChange(s.id, "name", e.target.value)} style={{ ...basicInputStyle, padding: "0.7rem" }} />
-              <div style={{ display: "flex", gap: "8px" }}>
-                <input type="time" value={s.start_time} onChange={e => handleNewShiftChange(s.id, "start_time", e.target.value)} style={{ ...basicInputStyle, padding: "0.7rem" }} />
-                <input type="time" value={s.end_time} onChange={e => handleNewShiftChange(s.id, "end_time", e.target.value)} style={{ ...basicInputStyle, padding: "0.7rem" }} />
+        <div style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+            {newShifts.map((s) => (
+              <div key={s.id} style={{ display: "flex", flexDirection: "column", gap: "8px", background: "#fff", padding: "12px", borderRadius: "10px", border: "1px solid #E5E7EB", position: "relative" }}>
+                <input placeholder="예: Day" value={s.name} onChange={e => handleNewShiftChange(s.id, "name", e.target.value)} style={{ ...basicInputStyle, padding: "0.7rem" }} />
+                <div style={{ display: "flex", gap: "8px" }}>
+                  <input type="time" value={s.start_time} onChange={e => handleNewShiftChange(s.id, "start_time", e.target.value)} style={{ ...basicInputStyle, padding: "0.7rem" }} />
+                  <input type="time" value={s.end_time} onChange={e => handleNewShiftChange(s.id, "end_time", e.target.value)} style={{ ...basicInputStyle, padding: "0.7rem" }} />
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: "10px", marginTop: "2px" }}>
+                  <span style={{ fontSize: "0.85rem", fontWeight: "bold", color: "#6B7280" }}>색상:</span>
+                  <input type="color" value={s.color} onChange={e => handleNewShiftChange(s.id, "color", e.target.value)} style={{ width: "30px", height: "30px", padding: 0, border: "none", cursor: "pointer" }} />
+                </div>
+                {newShifts.length > 1 && <button onClick={() => handleRemoveNewShiftRow(s.id)} style={{ position: "absolute", top: "5px", right: "5px", background: "none", border: "none", color: "#EF4444", cursor: "pointer", fontSize: "1.2rem" }}>✕</button>}
               </div>
-              <div style={{ display: "flex", alignItems: "center", gap: "10px", marginTop: "2px" }}>
-                <span style={{ fontSize: "0.85rem", fontWeight: "bold", color: "#6B7280" }}>색상:</span>
-                <input type="color" value={s.color} onChange={e => handleNewShiftChange(s.id, "color", e.target.value)} style={{ width: "30px", height: "30px", padding: 0, border: "none", cursor: "pointer" }} />
-              </div>
-              {newShifts.length > 1 && <button onClick={() => handleRemoveNewShiftRow(s.id)} style={{ position: "absolute", top: "5px", right: "5px", background: "none", border: "none", color: "#EF4444", cursor: "pointer", fontSize: "1.2rem" }}>✕</button>}
-            </div>
-          ))}
+            ))}
+          </div>
+          <button onClick={handleSaveNewShiftTypes} style={{ padding: "1rem", background: "#000", color: "#fff", borderRadius: "10px", border: "none", fontWeight: "bold", cursor: "pointer", marginTop: "15px", flexShrink: 0 }}>
+            💾 추가 반영하기
+          </button>
         </div>
-        <button onClick={handleSaveNewShiftTypes} style={{ padding: "1rem", background: "#000", color: "#fff", borderRadius: "10px", border: "none", fontWeight: "bold", cursor: "pointer", marginTop: "1rem" }}>💾 추가 반영하기</button>
       </div>
     </div>
   );
@@ -499,7 +576,7 @@ const renderScheduleCreate = () => {
       <div style={bentoGridStyle}>
         
         {/* 🌟 상단: 엑셀 형태 수동 기입 매트릭스 */}
-        <div style={{ ...baseCardStyle, gridColumn: "span 12", padding: "20px", display: "flex", flexDirection: "column", maxHeight: "65vh" }}>
+        <div style={{ ...baseCardStyle, gridColumn: "span 12", padding: "20px", display: "flex", flexDirection: "column", minHeight: "600px" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem", flexShrink: 0 }}>
             <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
               <h2 style={{ fontSize: "1.5rem", margin: 0 }}>📅 {scheduleYear}년 {scheduleMonth}월 근무표</h2>
@@ -573,9 +650,10 @@ const renderScheduleCreate = () => {
                                 }}
                               >
                                 <option value="" style={{ color: "#9CA3AF", fontWeight: "normal" }}>-</option>
-                                {existingShifts.map(s => (
-                                  <option key={s.id} value={s.id} style={{ color: "#111827", fontWeight: "bold" }}>
-                                    {s.name.substring(0, 2)} {/* 앞 2글자만 표시 */}
+                                {getAvailableShifts().map(s => (
+                                  <option key={s.id} value={s.id} style={{ color: s.isSystem ? "#EF4444" : "#111827", fontWeight: "bold" }}>
+                                    {/* {s.name.substring(0, 2)}  */}
+                                    {s.name}
                                   </option>
                                 ))}
                               </select>
@@ -602,7 +680,7 @@ const renderScheduleCreate = () => {
               placeholder="예: 홍길동 간호사는 15일 오프 요청. 김철수 의사는 매주 수요일 데이(D) 고정."
               value={schedulePrompt}
               onChange={(e) => setSchedulePrompt(e.target.value)}
-              style={{ width: "100%", flex: 1, minHeight: "80px", padding: "1.2rem", borderRadius: "12px", background: "#1F2937", color: "#fff", border: "1px solid #374151", outline: "none", resize: "none", lineHeight: "1.5", fontSize: "0.95rem" }}
+              style={{ width: "100%", flex: 1, minHeight: "300px", padding: "1.2rem", borderRadius: "12px", background: "#1F2937", color: "#fff", border: "1px solid #374151", outline: "none", resize: "none", lineHeight: "1.5", fontSize: "0.95rem" }}
             />
           </div>
 

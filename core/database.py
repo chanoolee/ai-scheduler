@@ -8,7 +8,7 @@ import os
 from dotenv import load_dotenv
 
 # 🚨 1. 현재 파일(database.py) 위치를 기준으로 .env 파일의 절대 경로 찾기!
-# (database.py가 core 폴더 안에 있고, .env가 그 바깥 최상단에 있다고 가정)
+# (database.py가 core 폴더 안에 있고, .env가 그 바깥 최상단에 있다)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 env_path = os.path.join(BASE_DIR, ".env")
 

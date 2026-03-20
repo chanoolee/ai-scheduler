@@ -2,11 +2,12 @@
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+import os
 import json
 import calendar
 import google.generativeai as genai # 🌟 구글 AI 라이브러리 임포트!
 
-# 대장 프로젝트에 맞게 임포트!
+from dotenv import load_dotenv
 from core.database import get_db
 from models.tables import Employee, ShiftType, ScheduleCondition
 from schemas.schedule_schema import ScheduleGenerateRequest
@@ -14,7 +15,18 @@ from schemas.schedule_schema import ScheduleGenerateRequest
 # ==========================================
 # 🔑 구글 Gemini API 키 세팅 (대장 키로 변경!)
 # ==========================================
-genai.configure(api_key="AIzaSyAMEh8gRtf14Wkpk7nL5YNIEYhv409O2hs")
+
+# 🚨 1. 현재 파일(database.py) 위치를 기준으로 .env 파일의 절대 경로 찾기!
+# (database.py가 core 폴더 안에 있고, .env가 그 바깥 최상단에 있다)
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+env_path = os.path.join(BASE_DIR, ".env")
+
+# 🚨 2. 찾아낸 경로를 억지로 먹여주기!
+load_dotenv(dotenv_path=env_path)
+
+GENAI_API_KEY = os.environ.get("GENAI_API_KEY")
+
+genai.configure(api_key=GENAI_API_KEY)
 
 router = APIRouter(prefix="/schedule", tags=["Schedule"])
 
@@ -83,10 +95,14 @@ async def generate_ai_schedule(userid: str, request: ScheduleGenerateRequest, db
 - 직원 목록: {json.dumps(emp_info, ensure_ascii=False)}
 - 사용 가능한 근무 타입: {json.dumps(shift_info, ensure_ascii=False)}
 
+[절대 지켜야 할 운영 기준 (DB 설정)]
+- 인당 월 최대 근무(만근) 시간: {fixed_rules.get('max_work_hours', '제한없음')}시간
+- 병원 운영 시간: {fixed_rules.get('op_start_time', '지정안됨')} ~ {fixed_rules.get('op_end_time', '지정안됨')}
+
 [절대 지켜야 할 규칙]
 - {fixed_rules.get('prompt_text', '특별한 규칙 없음')}
 - 수동 확정 스케줄: {json.dumps(request.manual_shifts, ensure_ascii=False)} (이건 절대 바꾸지 마세요!)
-- 추가 요청사항: {request.ai_prompt}
+- 이번 달 추가 요청사항: {request.ai_prompt}
 
 [출력 형식 예시]
 {{
