@@ -68,9 +68,18 @@ async def generate_ai_schedule(userid: str, request: ScheduleGenerateRequest, db
         raise HTTPException(status_code=400, detail="직원 정보나 근무 타입이 부족합니다 대장!")
 
     emp_info = [{"id": e.id, "name": e.name, "position": e.position} for e in employees]
+    # shift_info = [{"id": s.id, "name": s.name, "time": f"{s.start_time}~{s.end_time}"} for s in shift_types]
     shift_info = [{"id": s.id, "name": s.name, "time": f"{s.start_time}~{s.end_time}"} for s in shift_types]
     fixed_rules = json.loads(condition.fixed_conditions) if condition and condition.fixed_conditions else {}
     days_in_month = calendar.monthrange(request.year, request.month)[1]
+    leave_settings = fixed_rules.get("leave_settings", {"annual": True, "half": False, "quarter": False})
+
+    if leave_settings.get("annual"):
+        shift_info.append({"id": "leave_annual", "name": "연차", "time": "종일(Off)"})
+    if leave_settings.get("half"):
+        shift_info.append({"id": "leave_half", "name": "반차", "time": "오전/오후 반공휴"})
+    if leave_settings.get("quarter"):
+        shift_info.append({"id": "leave_quarter", "name": "반반차", "time": "2시간 휴가"})
 
     # 🌟 Gemini 모델 세팅 (JSON 형식으로만 대답하도록 강제!)
     model = genai.GenerativeModel(

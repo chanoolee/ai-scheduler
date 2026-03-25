@@ -7,7 +7,7 @@ import json
 
 from core.database import get_db
 from models.tables import Employee, ShiftType, ScheduleCondition
-from schemas.setting_schema import EmployeeCreate, ShiftTypeCreate, ScheduleConditionCreate
+from schemas.setting_schema import EmployeeCreate, ShiftTypeCreate, ScheduleConditionCreate, LeaveSettingCreate
 
 router = APIRouter(prefix="/settings", tags=["Settings"])
 
@@ -159,3 +159,32 @@ def save_schedule_condition(userid: str, data: ScheduleConditionCreate, db: Sess
         db.add(new_cond)
     db.commit()
     return {"message": "고정 조건이 저장되었습니다!"}
+
+# =======================================
+# 휴가(연차) 설정 API
+# =======================================
+@router.get("/leave-settings/{userid}")
+def get_leave_settings(userid: str, db: Session = Depends(get_db)):
+    cond = db.query(ScheduleCondition).filter(ScheduleCondition.userid == userid).first()
+    
+    # JSON 바구니를 풀어서 'leave_settings'만 쏙 빼서 줌! 없으면 기본값(연차만 True)
+    if cond and cond.fixed_conditions:
+        data = json.loads(cond.fixed_conditions)
+        return data.get("leave_settings", {"annual": True, "half": False, "quarter": False})
+    
+    return {"annual": True, "half": False, "quarter": False}
+
+@router.post("/leave-settings/{userid}")
+def save_leave_settings(userid: str, data: LeaveSettingCreate, db: Session = Depends(get_db)):
+    cond = db.query(ScheduleCondition).filter(ScheduleCondition.userid == userid).first()
+    
+    # 🌟 핵심: DB 스키마 수정 없이, 기존 JSON 데이터를 꺼내서 휴가 설정만 '추가/덮어쓰기' 하고 다시 넣음!
+    if cond:
+        existing_data = json.loads(cond.fixed_conditions) if cond.fixed_conditions else {}
+        existing_data["leave_settings"] = {"annual": data.annual, "half": data.half, "quarter": data.quarter}
+        cond.fixed_conditions = json.dumps(existing_data, ensure_ascii=False)
+        cond.updated_by_id = userid
+    else:
+        new_data = {"leave_settings": {"annual": data.annual, "half": data.half, "quarter": data.quarter}}
+        new_cond = ScheduleCondition(userid=userid, fixed_conditions=json.dumps(new_data, ensure_ascii=False), use_at=True, created_by_id=userid)
+        db.add(new_cond)

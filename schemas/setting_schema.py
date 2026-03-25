@@ -28,3 +28,11 @@ class ScheduleConditionCreate(BaseModel):
     op_start_time: time   # 운영 시작 시간
     op_end_time: time     # 운영 종료 시간
     prompt_text: str      # AI 자연어 조건 텍스트
+
+# =======================================
+# 3. 휴가 설정 데이터 스키마
+# =======================================
+class LeaveSettingCreate(BaseModel):
+    annual: bool
+    half: bool
+    quarter: bool

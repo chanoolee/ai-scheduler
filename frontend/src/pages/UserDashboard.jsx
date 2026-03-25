@@ -15,6 +15,7 @@ const UserDashboard = () => {
     if (activeMenu === "schedule-create") {
       fetchEmployees();
       fetchShiftTypes();
+      fetchLeaveSettings();
     }
     if (activeMenu === "auto-conditions") fetchConditions();
   }, [activeMenu]);
@@ -187,6 +188,40 @@ const UserDashboard = () => {
     if (leaveSettings.half) activeLeaves.push(SYSTEM_LEAVES[1]);
     if (leaveSettings.quarter) activeLeaves.push(SYSTEM_LEAVES[2]);
     return [...existingShifts, ...activeLeaves];
+  };
+
+  // 휴가 설정 로드 함수
+  const fetchLeaveSettings = async () => {
+    try {
+      const res = await fetch(`http://127.0.0.1:8000/settings/leave-settings/${TEST_USER_ID}`);
+      if (res.ok) setLeaveSettings(await res.json());
+    } catch (err) { console.error("휴가 설정 로드 에러", err); }
+  };
+
+  // 휴가 설정 저장 함수
+const handleSaveLeaveSettings = async () => {
+    try {
+      const res = await fetch(`http://127.0.0.1:8000/settings/leave-settings/${TEST_USER_ID}`, {
+        method: "POST", 
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(leaveSettings)
+      });
+
+      // 1. 서버가 보내준 데이터를 먼저 안전하게 JSON으로 풉니다!
+      const data = await res.json();
+
+      // 2. 서버가 정상(200 OK) 처리했으면 성공 알림!
+      if (res.ok) {
+        alert(data.message); 
+      } else {
+        // 서버가 에러(404, 500 등)를 뱉었으면 서버의 에러 메시지를 보여줌!
+        alert(`🚨 백엔드 에러: ${data.detail || "알 수 없는 에러가 발생했습니다!"}`);
+      }
+      
+    } catch (err) { 
+      console.error("휴가 설정 저장 중 치명적 에러:", err);
+      alert("서버와 연결이 끊어졌거나 통신에 실패했습니다! (파이썬 서버가 켜져 있는지 확인해주세요)"); 
+    }
   };
 
   // ==========================================
@@ -437,9 +472,9 @@ const UserDashboard = () => {
       <div style={{ ...baseCardStyle, gridColumn: "span 12", padding: "20px 30px", display: "flex", flexDirection: "row", justifyContent: "space-between", alignItems: "center", background: "#FFFBEB", border: "1px solid #FDE68A" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "15px" }}>
           <h2 style={{ fontSize: "1.2rem", margin: 0, color: "#D97706" }}>🌴 공통 휴가(연차) 설정</h2>
-          <span style={{ fontSize: "0.85rem", color: "#92400E" }}>병원에서 사용하는 휴가 항목을 켜두면, 시간표 짤 때 자동으로 목록에 나타납니다.</span>
+          <span style={{ fontSize: "0.85rem", color: "#92400E" }}>병원에서 사용하는 휴가 항목을 켜고 저장해두면 시간표 짤 때 목록에 나타납니다.</span>
         </div>
-        <div style={{ display: "flex", gap: "25px", fontWeight: "bold", fontSize: "1rem", color: "#111827" }}>
+        <div style={{ display: "flex", gap: "25px", fontWeight: "bold", fontSize: "1rem", color: "#111827", alignItems: "center" }}>
           <label style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }}>
             <input type="checkbox" checked={leaveSettings.annual} onChange={e => setLeaveSettings({...leaveSettings, annual: e.target.checked})} style={{ width: "20px", height: "20px", accentColor: "#D97706" }} /> 연차
           </label>
@@ -449,6 +484,9 @@ const UserDashboard = () => {
           <label style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }}>
             <input type="checkbox" checked={leaveSettings.quarter} onChange={e => setLeaveSettings({...leaveSettings, quarter: e.target.checked})} style={{ width: "20px", height: "20px", accentColor: "#D97706" }} /> 반반차
           </label>
+          <button onClick={handleSaveLeaveSettings} style={{ padding: "0.5rem 1rem", background: "#D97706", color: "#fff", border: "none", borderRadius: "8px", cursor: "pointer", fontSize: "0.9rem", marginLeft: "10px" }}>
+            💾 저장
+          </button>
         </div>
       </div>
 
